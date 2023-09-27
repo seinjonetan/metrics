@@ -1,0 +1,71 @@
+---
+title: "Problem Set 3"
+output:
+  pdf_document: default
+  keep_tex: yes
+  html_document:
+    df_print: paged
+subtitle: Economemtrics 
+fontsize: 12pt
+---
+
+Name: Tan Sein Jone 
+
+**3a.** 
+
+```{r}
+set.seed(123)
+n <- 30
+x <- rnorm(n)
+u <- rnorm(n)
+y <- 1 * x + u
+```
+
+**3b.** 
+
+```{r}
+beta_tilde <- sum(x^3 * y) / sum(x^4)
+beta <- sum(x * y) / sum(x^2)
+print(beta_tilde)
+print(beta)
+```
+
+**3c.** 
+
+```{r}
+r <- 10000
+results <- numeric(r)
+results_tilde <- numeric(r)
+for (i in 1:r) {
+    x <- rnorm(n)
+    u <- rnorm(n)
+    y <- 1 * x + u
+    results[i] <- sum(x * y) / sum(x^2)
+    results_tilde[i] <- sum(x^3 * y) / sum(x^4)
+}
+```
+
+**3d.** 
+
+```{r}
+hist(results, breaks = 50, main = "Histogram of beta estimator")
+hist(results_tilde, breaks = 50, main = "Histogram of beta_tilde estimator")
+```
+
+**3e.** 
+
+```{r}
+print(mean(results))
+print(mean(results_tilde))
+```
+
+These two estimators are close to the true value of 1. This means that they are unbiased.
+
+**3f.** 
+
+```{r}
+print(var(results))
+print(var(results_tilde))
+```
+
+The variance of the beta estimator is smaller than the variance of the beta_tilde estimator. This means that the beta estimator is more efficient than the beta_tilde estimator.
