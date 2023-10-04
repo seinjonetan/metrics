@@ -1,0 +1,36 @@
+---
+title: "Problem Set 3"
+output:
+  pdf_document: default
+  keep_tex: yes
+  html_document:
+    df_print: paged
+subtitle: Economemtrics 
+fontsize: 12pt
+---
+
+**4a.** 
+
+```{r}
+library(stats)
+load("Angrist80_YOB_3039.Rda")
+head(Angrist80_YOB_3039)
+
+model <- lm(LWKLYWGE ~ EDUC + RACE + MARRIED + SMSA + NEWENG + MIDATL + ENOCENT + WNOCENT + SOATL + ESOCENT + WSOCENT + MT + factor(YOB), data = Angrist80_YOB_3039)
+summary(model)
+```
+
+**4b.** 
+
+```{r}
+options(scipen = 100, digits = 4)
+coef <- summary(model)$coefficients[2, 1]
+stde <- round(summary(model)$coefficients[2, 2], digits = 4)
+sprintf("The coefficient is %s and the standard error is %s", coef, stde)
+```
+
+**4c.** 
+
+```{r}
+confint(model, "EDUC", level = 0.95)
+```
