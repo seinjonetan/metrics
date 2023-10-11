@@ -1,0 +1,180 @@
+---
+title: "Problem Set 5"
+output:
+  pdf_document: default
+  keep_tex: yes
+  html_document:
+    df_print: paged
+subtitle: Economemtrics 
+fontsize: 12pt
+---
+
+**3a.**
+
+``` {r}
+b <- matrix(c(1, 0.5, 0.5, 0.5, 1, 0.5, 0.5, 0.5, 1), nrow = 3, ncol = 3, byrow = TRUE)
+print(b)
+```
+
+**3b.**
+
+``` {r}
+A <- eigen(b)
+b_sqrt <- A$vectors %*% diag(sqrt(A$values)) %*% t(A$vectors)
+print(b_sqrt %*% t(b_sqrt))
+```
+
+**3c.**
+
+``` {r}
+sample_size <- 1000
+m <- 3
+n <- 3
+
+matrices <- list()
+squared_matrices <- list()
+
+for (i in 1:sample_size) {
+  matrices[[i]] <- matrix(rnorm(m * n), nrow = m, ncol = n) %*% b_sqrt
+  squared_matrices[[i]] <- matrices[[i]] %*% matrices[[i]]
+}
+
+print(Reduce("+", squared_matrices) / sample_size)
+```
+
+**3d.**
+
+``` {r}
+y_matrices <- list()
+beta_unprocessed <- list()
+
+for (i in 1:sample_size) {
+  y_matrices[[i]] <- matrix(rnorm(m * 1), nrow = m, ncol = 1)
+  beta_unprocessed[[i]] <- solve(squared_matrices[[i]]) %*% matrices[[i]] %*% y_matrices[[i]]
+}
+
+print(Reduce("+", beta_unprocessed) / sample_size)
+```
+
+**3e.**
+
+``` {r}
+I <- diag(3)
+beta_hat_unprocessed <- list()
+
+m_projection <- function(x) {
+  inv_square <- solve(t(x) %*% x)
+  return(I - (x %*% inv_square %*% t(x)))
+}
+
+matrix_projection <- function(x, m, y) {
+  inv <- solve(t(x) %*% m %*% x)
+  return(inv %*% t(x) %*% m %*% y)
+}
+
+for (i in 1:sample_size) {
+  matrix <- matrices[[i]]
+  x_1 <- matrix[, 1]
+  x_2 <- matrix[, 2:3]
+
+  m_2 <- m_projection(x_2)
+  beta_hat_unprocessed[[i]] <- matrix_projection(x_1, m_2, y_matrices[[i]])
+}
+
+print(Reduce("+", beta_hat_unprocessed) / sample_size)
+```
+
+**3f.**
+
+``` {r}
+x_1_beta_unprocessed <- list()
+
+for (i in 1:sample_size) {
+  matrix <- matrices[[i]]
+  x_1 <- matrix[, 1]
+  squared_matrices <- x_1 %*% x_1
+
+  x_1_beta_unprocessed[[i]] <- squared_matrices %*% x_1 %*% y_matrices[[i]]
+}
+
+print(Reduce("+", x_1_beta_unprocessed) / sample_size)
+```
+
+**4a.**
+
+``` {r}
+sample_size <- 100
+x_1_and_2 <- list()
+
+norm_transform <- function(x, ro = 0.9) {
+  mu <- c(0, 0)
+  sigma <- matrix(c(1, ro, ro, 1), nrow = 2, ncol = 2, byrow = TRUE)
+  return(t(x) %*% chol(sigma) + mu)
+}
+
+for (i in 1:sample_size) {
+  x_1_and_2[[i]] <- norm_transform(matrix(rnorm(2 * 1)))
+}
+```
+
+**4b.**
+
+``` {r}
+mc_simulate <- function(x_1, x_2, sample_size = 100) {
+  y <- list()
+
+  for (i in 1:sample_size) {
+    y[[i]] <- x_1[[i]] + x_2[[i]] + rnorm(1)
+  }
+
+  b_hat <- summary(lm(unlist(y) ~ unlist(x_1) + unlist(x_2)))$coefficients["unlist(x_1)", c("Estimate", "Std. Error")]
+  b_tilde <- summary(lm(unlist(y) ~ unlist(x_1)))$coefficients["unlist(x_1)", c("Estimate", "Std. Error")]
+
+  return(c(b_tilde[1] - b_hat[1], b_tilde[2] - b_hat[2]))
+}
+
+x_1 <- lapply(x_1_and_2, function(x) x[1])
+x_2 <- lapply(x_1_and_2, function(x) x[2])
+print(mc_simulate(x_1, x_2))
+```
+
+**4c.**
+
+``` {r}
+experiment <- 1000
+
+temp <- array()
+coef_diff <- array()
+se_diff <- array()
+
+for (i in 1:experiment) {
+  temp <- mc_simulate(x_1, x_2)
+  coef_diff[i] <- temp[1]
+  se_diff[i] <- temp[2]
+}
+
+print(mean(coef_diff))
+print(mean(se_diff))
+```
+
+**4d.**
+
+``` {r}
+for (i in 1:sample_size) {
+  x_1_and_2[[i]] <- norm_transform(matrix(rnorm(2 * 1)), 0)
+}
+
+x_1 <- lapply(x_1_and_2, function(x) x[1])
+x_2 <- lapply(x_1_and_2, function(x) x[2])
+
+for (i in 1:experiment) {
+  temp <- mc_simulate(x_1, x_2)
+  coef_diff[i] <- temp[1]
+  se_diff[i] <- temp[2]
+}
+
+print(mean(coef_diff))
+print(mean(se_diff))
+```
+
+The bias is lower for the second experiment, both in terms of its coefficents and standard errors. This is because the first experiment has a correlation between the two variables, which results in the model overestimating the effects of x1 as a movement in x1 wil result in a movement in x2. 
