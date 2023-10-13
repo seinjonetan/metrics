@@ -42,6 +42,8 @@ for (i in 1:sample_size) {
 print(Reduce("+", squared_matrices) / sample_size)
 ```
 
+It is close to the variance covariance matrix of b. This is because the variance covariance matrix of b is the expected value of the squared matrices. Which is the operation that was carried out when we take x'x/n.
+
 **3d.**
 
 ``` {r}
@@ -156,6 +158,8 @@ for (i in 1:experiment) {
 print(mean(coef_diff))
 print(mean(se_diff))
 ```
+
+Dropping the estimator will cause the bias to increase and the standard errors to decrease. This is because the estimator is now biased, as it is not taking into account the correlation between the two variables. The standard errors are lower because the model is now simpler, and therefore the standard errors are lower.
 
 **4d.**
 
