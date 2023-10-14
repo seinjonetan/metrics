@@ -102,6 +102,35 @@ for (i in 1:sample_size) {
 print(Reduce("+", x_1_beta_unprocessed) / sample_size)
 ```
 
+``` {r}
+b <- matrix(c(1, 0.0, 0.0, 0.0, 1, 0.5, 0.0, 0.5, 1), nrow = 3, ncol = 3, byrow = TRUE)
+A <- eigen(b)
+b_sqrt <- A$vectors %*% diag(sqrt(A$values)) %*% t(A$vectors)
+
+sample_size <- 1000
+for (i in 1:sample_size) {
+  matrices[[i]] <- matrix(rnorm(m * n), nrow = m, ncol = n) %*% b_sqrt
+  y_matrices[[i]] <- matrix(rnorm(m * 1), nrow = m, ncol = 1)
+  beta_unprocessed[[i]] <- solve((matrices[[i]] %*% matrices[[i]]), matrices[[i]] %*% y_matrices[[i]])
+}
+
+for (i in 1:sample_size) {
+  matrix <- matrices[[i]]
+  x_1 <- matrix[, 1]
+  x_2 <- matrix[, 2:3]
+
+  m_2 <- m_projection(x_2)
+  beta_hat_unprocessed[[i]] <- matrix_projection(x_1, m_2, y_matrices[[i]])
+}
+
+print(Reduce("+", beta_unprocessed) / sample_size)
+print(Reduce("+", beta_hat_unprocessed) / sample_size)
+```
+
+For the first b matrix, the beta_1 is different from beta_hat_1. This is because of the OLs omitting the effects of x_2 and x_3.
+
+For the second b matrix, the beta_1 is the same as beta_hat_1. This is because there is no covariance between x_1 with x_2 and x_3, which means that there is no relation between the x_1 variables and the other two. Therefore, the OLS will not overestimate the effects of x_1 even when we omit the other two variables.
+
 **4a.**
 
 ``` {r}
