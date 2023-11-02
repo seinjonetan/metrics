@@ -1,0 +1,46 @@
+---
+title: "Problem Set 7"
+output:
+  pdf_document: default
+  keep_tex: yes
+  html_document:
+    df_print: paged
+subtitle: Economemtrics 
+fontsize: 12pt
+---
+
+**3a.**
+
+```{r}
+library(stats)
+library(AER)
+load("Angrist80_YOB_3039.Rda")
+
+model <- lm(LWKLYWGE ~ EDUC + RACE + MARRIED + SMSA + NEWENG + MIDATL + ENOCENT + WNOCENT + SOATL + ESOCENT + WSOCENT + MT + factor(YOB), data = Angrist80_YOB_3039)
+model_summary <- summary(model)
+
+test <- coeftest(model, vcov = vcovHC(model, type = "HC0"))
+print(test, digits = 4)
+```
+
+**3b.**
+```{r}
+print(test["EDUC", "Std. Error"])
+print(coef(model_summary)["EDUC", "Std. Error"])
+print(cat(test["EDUC", "Std. Error"] - coef(model_summary)["EDUC", "Std. Error"], "\n"))
+```
+
+The standard error for the heteroskedastic test is larger by 0.00005.
+
+**3c.**
+
+```{r}
+educ_int_het <- confint(test)["EDUC", ]
+educ_int_homo <- confint(model)["EDUC", ]
+
+print(educ_int_het)
+print(cat((educ_int_het[2] - educ_int_het[1]) - (educ_int_homo[2] - educ_int_homo[1]), "\n"))
+```
+
+
+It is longer by 0.00019668. Heteroskedasticity does not appear to be a huge issue in this model as the results produced are fairly close in their values.
