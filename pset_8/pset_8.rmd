@@ -1,0 +1,132 @@
+---
+title: "Problem Set 8"
+output:
+  pdf_document: default
+  keep_tex: yes
+  html_document:
+    df_print: paged
+subtitle: Economemtrics 
+fontsize: 12pt
+---
+
+**2a.**
+
+```{r}
+library(sandwich)
+library(lmtest)
+
+mc_simulate <- function(n, het = 1) {
+    x <- rnorm(n)
+    e <- runif(n, -1, 1)
+    u <- x * e
+
+    if (het == 0) {
+        u <- e
+    }
+
+    y <- 1 + x + u
+
+    model <- lm(y ~ x)
+    ci <- confint(model)[2, ]
+
+    h0 <- coeftest(model, vcov = vcovHC(model, type = "HC0"))
+    h2 <- coeftest(model, vcov = vcovHC(model, type = "HC2"))
+    h3 <- coeftest(model, vcov = vcovHC(model, type = "HC3"))
+
+    h0_se <- sqrt(diag(vcovHC(model, type = "HC0")))
+    h2_se <- sqrt(diag(vcovHC(model, type = "HC2")))
+    h3_se <- sqrt(diag(vcovHC(model, type = "HC3")))
+
+    h0_ci <- cbind(h0[, "Estimate"] - 1.96 * h0_se, h0[, "Estimate"] + 1.96 * h0_se)
+    h2_ci <- cbind(h2[, "Estimate"] - 1.96 * h2_se, h2[, "Estimate"] + 1.96 * h2_se)
+    h3_ci <- cbind(h3[, "Estimate"] - 1.96 * h3_se, h3[, "Estimate"] + 1.96 * h3_se)
+
+    colnames(h0_ci) <- colnames(h2_ci) <- colnames(h3_ci) <- c("2.5 %", "97.5 %")
+
+    true_slope <- 1
+    in_interval <- ci[1] <= true_slope & true_slope <= ci[2]
+    in_interval_h0 <- h0_ci[1, "2.5 %"] <= true_slope & true_slope <= h0_ci[1, "97.5 %"]
+    in_interval_h2 <- h2_ci[1, "2.5 %"] <= true_slope & true_slope <= h2_ci[1, "97.5 %"]
+    in_interval_h3 <- h3_ci[1, "2.5 %"] <= true_slope & true_slope <= h3_ci[1, "97.5 %"]
+
+    ci_length <- ci[2] - ci[1]
+    h0_length <- h0_ci[1, "97.5 %"] - h0_ci[1, "2.5 %"]
+    h2_length <- h2_ci[1, "97.5 %"] - h2_ci[1, "2.5 %"]
+    h3_length <- h3_ci[1, "97.5 %"] - h3_ci[1, "2.5 %"]
+
+    return(list(
+        intervals = list(ci[1], ci[2], h0_ci[1, "2.5 %"], h0_ci[1, "97.5 %"], h2_ci[1, "2.5 %"], h2_ci[1, "97.5 %"], h3_ci[1, "2.5 %"], h3_ci[1, "97.5 %"]),
+        includes_true = list(in_interval, in_interval_h0, in_interval_h2, in_interval_h3),
+        lengths = list(ci_length, h0_length, h2_length, h3_length)
+    ))
+}
+
+results <- matrix(NA, nrow = 1000, ncol = 16)
+colnames(results) <- c("ci_lower", "ci_upper", "h0_lower", "h0_upper", "h2_lower", "h2_upper", "h3_lower", "h3_upper", "in_interval", "in_interval_h0", "in_interval_h2", "in_interval_h3", "ci_length", "h0_length", "h2_length", "h3_length")
+```
+
+```{r}
+n <- 30
+
+for (i in 1:1000) {
+    sim <- mc_simulate(n)
+    results[i, ] <- unlist(c(sim$intervals, sim$includes_true, sim$lengths))
+}
+
+averages <- colMeans(results)
+
+print(averages[1:8])
+print(averages[9:12])
+print(averages[13:16])
+```
+
+**2b.**
+
+```{r}
+n <- 1000
+
+for (i in 1:1000) {
+    sim <- mc_simulate(n)
+    results[i, ] <- unlist(c(sim$intervals, sim$includes_true, sim$lengths))
+}
+
+averages <- colMeans(results)
+
+print(averages[1:8])
+print(averages[9:12])
+print(averages[13:16])
+```
+
+**2c.**
+
+```{r}
+n <- 30
+
+for (i in 1:1000) {
+    sim <- mc_simulate(n, 0)
+    results[i, ] <- unlist(c(sim$intervals, sim$includes_true, sim$lengths))
+}
+
+averages <- colMeans(results)
+
+print(averages[1:8])
+print(averages[9:12])
+print(averages[13:16])
+```
+
+**2d.**
+
+```{r}
+n <- 1000
+
+for (i in 1:1000) {
+    sim <- mc_simulate(n, 0)
+    results[i, ] <- unlist(c(sim$intervals, sim$includes_true, sim$lengths))
+}
+
+averages <- colMeans(results)
+
+print(averages[1:8])
+print(averages[9:12])
+print(averages[13:16])
+```
