@@ -7,6 +7,7 @@ output:
     df_print: paged
 subtitle: Economemtrics 
 fontsize: 12pt
+linestretch: 1.5
 ---
 
 **2a.**
@@ -18,10 +19,11 @@ library(lmtest)
 mc_simulate <- function(n, het = 1) {
     x <- rnorm(n)
     e <- runif(n, -1, 1)
-    u <- x * e
 
     if (het == 0) {
         u <- e
+    } else {
+        u <- x * e
     }
 
     y <- 1 + x + u
@@ -80,6 +82,10 @@ print(averages[9:12])
 print(averages[13:16])
 ```
 
+Only the interval for h3 is close to 0.95. The homoskedastic interval has the lowest incidence where the interval contains the true value with the incidences increasing as we go from h0 to h3. The homoskedastic interval has the lowest average length with the lengths increasing as we go from h0 to h3.
+
+The h0 CI length is the shortest while the h3 length is the longest.
+
 **2b.**
 
 ```{r}
@@ -96,6 +102,10 @@ print(averages[1:8])
 print(averages[9:12])
 print(averages[13:16])
 ```
+
+In this case, the homoskedastic interval still has the lowest incidence where the interval contains the true value while h0 to h3 have the true values in their intervals very close to 0.95.
+
+h0 still has the shortest CI legth while h3 has the longest. However, all the CIs have very simmilar lengths in this experiment.
 
 **2c.**
 
@@ -114,6 +124,10 @@ print(averages[9:12])
 print(averages[13:16])
 ```
 
+In this case, h3 has the higehst incidence where the true value falls within its CI. h0 meanwhile has the lowest, however, compared to the heteroskedastic case, it is much closer to 0.95.
+
+In this case, h0 has the shortest CI length while the homoskedastic CI has the longest. However, all the CIs have very simmilar lengths in this experiment.
+
 **2d.**
 
 ```{r}
@@ -130,3 +144,9 @@ print(averages[1:8])
 print(averages[9:12])
 print(averages[13:16])
 ```
+
+In this case, all CIs are very close to 0.95. All CIs also have very simmilar lengths.
+
+**2e.**
+
+In both cases, h3 produces the interval that contains the true value most of the time, regardless of whether the variance is homoskedastic or heteroskedastic. Hence, it is the most reliable interval.
