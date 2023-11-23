@@ -1,0 +1,120 @@
+---
+title: "Problem Set 9"
+output:
+  pdf_document: default
+  keep_tex: yes
+  html_document:
+    df_print: paged
+subtitle: Economemtrics 
+fontsize: 12pt
+linestretch: 1.5
+---
+
+**3a.**
+
+```{r}
+library(stats)
+library(AER)
+load("Angrist80_YOB_3039.Rda")
+
+Angrist80_YOB_3039$QOB <- factor(Angrist80_YOB_3039$QOB)
+
+dummies <- model.matrix(~ QOB - 1, data = Angrist80_YOB_3039)
+dummies <- as.data.frame(dummies)
+colnames(dummies) <- c("Q1", "Q2", "Q3", "Q4")
+Angrist80_YOB_3039 <- cbind(Angrist80_YOB_3039, dummies)
+
+head(Angrist80_YOB_3039)
+```
+
+**3b.**
+
+```{r}
+iv_1 <- lm(EDUC ~ Q1 + Q2 + Q3, data = Angrist80_YOB_3039)
+print(coeftest(iv_1, vcov = vcovHC(iv_1, type = "HC0")))
+```
+
+Being born in Q1 is associated with lower education levels.
+
+```{r}
+iv_2 <- lm(
+  EDUC ~ Q1 + Q2 + Q3 + RACE + MARRIED + SMSA + NEWENG +
+    MIDATL + ENOCENT + WNOCENT + SOATL + ESOCENT + WSOCENT + MT + AGE + AGEQ,
+  data = Angrist80_YOB_3039
+)
+print(coeftest(iv_2, vcov = vcovHC(iv_2, type = "HC0")))
+```
+
+Yes, there is an association between being born in Q1 and education levels.
+
+**3c.**
+
+```{r}
+means <- aggregate(
+  cbind(EDUC, LWKLYWGE) ~ Q1,
+  data = Angrist80_YOB_3039, FUN = mean
+)
+
+diff_educ <- means$EDUC[1] - means$EDUC[2]
+diff_wage <- means$LWKLYWGE[1] - means$LWKLYWGE[2]
+
+result <- diff_wage / diff_educ
+
+print(result)
+```
+
+**3d.**
+
+```{r}
+iv_3 <- ivreg(LWKLYWGE ~ EDUC | EDUC + Q1 + Q2 + Q3, data = Angrist80_YOB_3039)
+summary(iv_3, vcov = vcovHC(iv_3, type = "HC0"))
+```
+
+**3e.**
+
+```{r}
+iv_4 <- ivreg(
+  LWKLYWGE ~ EDUC + RACE + MARRIED + SMSA + NEWENG +
+    MIDATL + ENOCENT + WNOCENT + SOATL + ESOCENT + WSOCENT + MT + AGE + AGEQ |
+    EDUC + Q1 + Q2 + Q3 + RACE + MARRIED + SMSA +
+      NEWENG + MIDATL + ENOCENT + WNOCENT + SOATL +
+      ESOCENT + WSOCENT + MT + AGE + AGEQ,
+  data = Angrist80_YOB_3039
+)
+
+summary_iv_4 <- summary(iv_4, vcov = vcovHC(iv_4, type = "HC0"))
+
+print(paste("IV estimator: ", summary_iv_4$coef["EDUC", "Estimate"]))
+print(paste("IV standard error: ", summary_iv_4$coef["EDUC", "Std. Error"]))
+```
+
+**3f.**
+
+```{r}
+ols <- lm(
+  LWKLYWGE ~ EDUC + RACE + MARRIED + SMSA + NEWENG +
+    MIDATL + ENOCENT + WNOCENT + SOATL + ESOCENT + WSOCENT + MT + AGE + AGEQ,
+  data = Angrist80_YOB_3039
+)
+
+summary_ols <- summary(ols)
+
+print(paste("OLS estimator: ", summary_ols$coef["EDUC", "Estimate"]))
+print(paste("OLS standard error: ", summary_ols$coef["EDUC", "Std. Error"]))
+```
+
+**3g.**
+
+```{r}
+iv_interval <- confint(
+  iv_4, "EDUC",
+  level = 0.95, vcov = vcovHC(iv_4, type = "HC0")
+)
+ols_interval <- confint(
+  ols, "EDUC",
+  level = 0.95, vcov = vcovHC(ols, type = "HC0")
+)
+
+print(paste("IV 95% confidence interval: ", iv_interval))
+print(paste("OLS 95% confidence interval: ", ols_interval))
+```
