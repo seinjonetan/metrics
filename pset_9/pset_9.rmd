@@ -15,33 +15,49 @@ linestretch: 1.5
 ```{r}
 library(stats)
 library(AER)
-load("Angrist80_YOB_3039.Rda")
+load("Angrist804049.Rda")
 
-Angrist80_YOB_3039$QOB <- factor(Angrist80_YOB_3039$QOB)
+Angrist804049$YOB <- factor(Angrist804049$YOB)
+Angrist804049$QOB <- factor(Angrist804049$QOB)
 
-dummies <- model.matrix(~ QOB - 1, data = Angrist80_YOB_3039)
+dummies <- model.matrix(~ QOB - 1, data = Angrist804049)
 dummies <- as.data.frame(dummies)
 colnames(dummies) <- c("Q1", "Q2", "Q3", "Q4")
-Angrist80_YOB_3039 <- cbind(Angrist80_YOB_3039, dummies)
+Angrist804049 <- cbind(Angrist804049, dummies)
 
-head(Angrist80_YOB_3039)
+dummies <- model.matrix(~ YOB - 1, data = Angrist804049)
+dummies <- as.data.frame(dummies)
+Angrist804049 <- cbind(Angrist804049, dummies)
+
+head(Angrist804049)
 ```
 
 **3b.**
 
 ```{r}
-iv_1 <- lm(EDUC ~ Q1 + Q2 + Q3, data = Angrist80_YOB_3039)
+iv_1 <- lm(EDUC ~ Q1 + Q2 + Q3, data = Angrist804049)
 print(coeftest(iv_1, vcov = vcovHC(iv_1, type = "HC0")))
 ```
 
 Being born in Q1 is associated with lower education levels.
 
 ```{r}
-iv_2 <- lm(
+yob_dummies <- paste0("YOB", unique(Angrist804049$YOB))
+yob_dummies <- paste(yob_dummies, collapse = " + ")
+formula <- as.formula(paste(
+  "
   EDUC ~ Q1 + Q2 + Q3 + RACE + MARRIED + SMSA + NEWENG +
-    MIDATL + ENOCENT + WNOCENT + SOATL + ESOCENT + WSOCENT + MT + AGE + AGEQ,
-  data = Angrist80_YOB_3039
+    MIDATL + ENOCENT + WNOCENT + SOATL + ESOCENT + WSOCENT + MT +
+    AGE + AGEQ +
+  ",
+  yob_dummies
+))
+
+iv_2 <- lm(
+  formula,
+  data = Angrist804049
 )
+
 print(coeftest(iv_2, vcov = vcovHC(iv_2, type = "HC0")))
 ```
 
@@ -52,7 +68,7 @@ Yes, there is an association between being born in Q1 and education levels.
 ```{r}
 means <- aggregate(
   cbind(EDUC, LWKLYWGE) ~ Q1,
-  data = Angrist80_YOB_3039, FUN = mean
+  data = Angrist804049, FUN = mean
 )
 
 diff_educ <- means$EDUC[1] - means$EDUC[2]
@@ -63,23 +79,46 @@ result <- diff_wage / diff_educ
 print(result)
 ```
 
+The Wald Estimator from the paper is 0.102. The result obstained here is higher at 0.443.
+
 **3d.**
 
 ```{r}
-iv_3 <- ivreg(LWKLYWGE ~ EDUC | EDUC + Q1 + Q2 + Q3, data = Angrist80_YOB_3039)
+iv_3 <- ivreg(LWKLYWGE ~ EDUC | EDUC + Q1 + Q2 + Q3, data = Angrist804049)
 summary(iv_3, vcov = vcovHC(iv_3, type = "HC0"))
 ```
+
+Compared to the Wald estimator above at 0.443, the Iv estimator is lower at 0.071.
 
 **3e.**
 
 ```{r}
-iv_4 <- ivreg(
+yob_dummies <- paste0("YOB", unique(Angrist804049$YOB))
+interactions <- c()
+for (yob in yob_dummies) {
+  for (q in c("Q1", "Q2", "Q3")) {
+    interactions <- c(interactions, paste0(yob, ":", q))
+  }
+}
+interactions <- paste(interactions, collapse = " + ")
+
+formula_string <- paste(
+  "
   LWKLYWGE ~ EDUC + RACE + MARRIED + SMSA + NEWENG +
-    MIDATL + ENOCENT + WNOCENT + SOATL + ESOCENT + WSOCENT + MT + AGE + AGEQ |
-    EDUC + Q1 + Q2 + Q3 + RACE + MARRIED + SMSA +
+    MIDATL + ENOCENT + WNOCENT + SOATL + ESOCENT + WSOCENT + MT + AGE + AGEQ +
+  ",
+  yob_dummies,
+  "| EDUC + RACE + MARRIED + SMSA +
       NEWENG + MIDATL + ENOCENT + WNOCENT + SOATL +
-      ESOCENT + WSOCENT + MT + AGE + AGEQ,
-  data = Angrist80_YOB_3039
+      ESOCENT + WSOCENT + MT + AGE + AGEQ +",
+  interactions,
+  " + ",
+  yob_dummies
+)
+
+iv_4 <- ivreg(
+  formula_string,
+  data = Angrist804049
 )
 
 summary_iv_4 <- summary(iv_4, vcov = vcovHC(iv_4, type = "HC0"))
@@ -88,13 +127,15 @@ print(paste("IV estimator: ", summary_iv_4$coef["EDUC", "Estimate"]))
 print(paste("IV standard error: ", summary_iv_4$coef["EDUC", "Std. Error"]))
 ```
 
+The original paper has the Iv estimator at 0.0891 and the standard error at 0.0161. By caomparison, the coefficient obtained here is lower at 0.0634 and the standard error is significantly lower ay 0.000377.
+
 **3f.**
 
 ```{r}
 ols <- lm(
   LWKLYWGE ~ EDUC + RACE + MARRIED + SMSA + NEWENG +
     MIDATL + ENOCENT + WNOCENT + SOATL + ESOCENT + WSOCENT + MT + AGE + AGEQ,
-  data = Angrist80_YOB_3039
+  data = Angrist804049
 )
 
 summary_ols <- summary(ols)
@@ -106,6 +147,19 @@ print(paste("OLS standard error: ", summary_ols$coef["EDUC", "Std. Error"]))
 **3g.**
 
 ```{r}
+formula_string <- paste(
+  "
+  LWKLYWGE ~ EDUC + RACE + MARRIED + SMSA + NEWENG +
+    MIDATL + ENOCENT + WNOCENT + SOATL + ESOCENT + WSOCENT + MT + AGE + AGEQ +
+  ",
+  yob_dummies
+)
+
+ols <- lm(
+  formula_string,
+  data = Angrist804049
+)
+
 iv_interval <- confint(
   iv_4, "EDUC",
   level = 0.95, vcov = vcovHC(iv_4, type = "HC0")
@@ -118,3 +172,5 @@ ols_interval <- confint(
 print(paste("IV 95% confidence interval: ", iv_interval))
 print(paste("OLS 95% confidence interval: ", ols_interval))
 ```
+
+The confidence intervals for OLS and IVs are very similar.

@@ -1,0 +1,109 @@
+---
+title: "Importing data from Angrist & Krueger (1991)"
+output: html_document
+---
+
+
+# Research Question
+
+Angrist and Krueger (1991, Quarterly Journal of Economics) "Does Compulsory School Attendance Affect Schooling and Earnings?" is focused on estimating of the return to education. The article is accessible from https://www.jstor.org/stable/2937954
+
+The main equation of interest (that sometimes is called the Mincer equation) is given by
+$$\begin{equation}
+\log(\text{Weekly Wage}_i)=\beta_1\cdot (\text{Years of Education}_i)+X_i'\beta_2+U_i,
+\end{equation}$$
+
+where $X_i$ icludes controls such as
+
+* Race,
+* Marital status,
+* Geographical location,
+* Age.
+* Note that the sample is restricted to men only.
+
+
+# Data
+
+The data from Angrist and Krueger (1991) is available from http://economics.mit.edu/faculty/angrist/data1/data/angkru1991 
+
+1. Download the Stata version of the file (also available from the Canvas page): "NEW7080.dta"
+2. Move the file to your current working directory for R.
+3. Stata files can be imported into R using `read.dta()` from the package `foreign`.
+
+
+```{r}
+library(foreign)
+Angrist<-read.dta("NEW7080.dta")
+names(Angrist)
+```
+
+
+# Re-naming the variables
+
+The dataset provided by the authors without informative variable names, so we need to change the names of the variables. The list of the names corresponding to the `v` variables can be found at http://economics.mit.edu/files/5354
+
+The following command will assign more informative names to the variables:
+```{r}
+colnames(Angrist) <-
+   c(
+  "AGE",
+  "AGEQ", 
+  "v3",
+  "EDUC", #education
+  "ENOCENT", #region dummy
+  "ESOCENT", #region dummy
+  "v7",
+  "v8",
+  "LWKLYWGE", # Log weekly wage
+  "MARRIED", #1 if married
+  "MIDATL", #region dummy
+  "MT", #region dummy
+  "NEWENG", #region dummy
+  "v14","v15",
+  "CENSUS", #70 or #80
+  "v17",
+  "QOB", #quarter of birth
+  "RACE", #1 if black, 0 otherwise
+  "SMSA", #region dummy
+  "SOATL", #region dummy
+  "v22","v23",
+  "WNOCENT", #region dummy
+  "WSOCENT", #region dummy
+  "v26",
+  "YOB" #year of birth
+  )
+
+names(Angrist)
+```
+
+# Selecting observations
+
+Following the paper, we focus on middle-aged men in the 1980 census:
+```{r}
+Angrist804049<-subset(Angrist, CENSUS==80 & AGE>=40 & AGE<=49)
+```
+
+The selected individuals were all between the ages of 40-49 at the time of the census. Therefore, they are expected to be finished with their education/studies and still too young to retire. The number of observations in the selected sample is:
+```{r}
+nrow(Angrist804049)
+```
+
+# Age and age-squared
+
+* AGEQ variable gives a more precise age by incorporating the quarter of birth.
+* Need to remove 1900 from AGEQ
+
+```{r}
+Angrist804049$AGEQ=Angrist804049$AGEQ-1900
+Angrist804049$AGEQ_SQ=Angrist804049$AGEQ^2
+
+table(Angrist804049$AGEQ)
+table(Angrist804049$AGEQ_SQ)
+```
+
+# Saving for future use
+
+```{r}
+save(Angrist804049,file="Angrist804049.Rda")
+```
+
