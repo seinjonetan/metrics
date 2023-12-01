@@ -108,7 +108,7 @@ formula_string <- paste(
     MIDATL + ENOCENT + WNOCENT + SOATL + ESOCENT + WSOCENT + MT + AGE + AGEQ +
   ",
   yob_dummies,
-  "| EDUC + RACE + MARRIED + SMSA +
+  "| RACE + MARRIED + SMSA +
       NEWENG + MIDATL + ENOCENT + WNOCENT + SOATL +
       ESOCENT + WSOCENT + MT + AGE + AGEQ +",
   interactions,

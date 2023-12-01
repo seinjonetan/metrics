@@ -1769,7 +1769,7 @@ formula_string &lt;- paste(
     MIDATL + ENOCENT + WNOCENT + SOATL + ESOCENT + WSOCENT + MT + AGE + AGEQ +
   &quot;,
   yob_dummies,
-  &quot;| EDUC + RACE + MARRIED + SMSA +
+  &quot;| RACE + MARRIED + SMSA +
       NEWENG + MIDATL + ENOCENT + WNOCENT + SOATL +
       ESOCENT + WSOCENT + MT + AGE + AGEQ +&quot;,
   interactions,
@@ -1786,9 +1786,9 @@ iv_4 &lt;- ivreg(
 <pre class="r"><code>summary_iv_4 &lt;- summary(iv_4, vcov = vcovHC(iv_4, type = &quot;HC0&quot;))
 
 print(paste(&quot;IV estimator: &quot;, summary_iv_4$coef[&quot;EDUC&quot;, &quot;Estimate&quot;]))</code></pre>
-<pre><code>## [1] &quot;IV estimator:  0.0634209458967026&quot;</code></pre>
+<pre><code>## [1] &quot;IV estimator:  0.108963872996728&quot;</code></pre>
 <pre class="r"><code>print(paste(&quot;IV standard error: &quot;, summary_iv_4$coef[&quot;EDUC&quot;, &quot;Std. Error&quot;]))</code></pre>
-<pre><code>## [1] &quot;IV standard error:  0.000377385920475481&quot;</code></pre>
+<pre><code>## [1] &quot;IV standard error:  0.02428589004757&quot;</code></pre>
 <p>The original paper has the Iv estimator at 0.0891 and the standard error at 0.0161. By caomparison, the coefficient obtained here is lower at 0.0634 and the standard error is significantly lower ay 0.000377.</p>
 <p><strong>3f.</strong></p>
 <pre class="r"><code>ols &lt;- lm(
@@ -1828,8 +1828,8 @@ ols_interval &lt;- confint(
 )
 
 print(paste(&quot;IV 95% confidence interval: &quot;, iv_interval))</code></pre>
-<pre><code>## [1] &quot;IV 95% confidence interval:  0.0627553556809159&quot;
-## [2] &quot;IV 95% confidence interval:  0.0640865361124894&quot;</code></pre>
+<pre><code>## [1] &quot;IV 95% confidence interval:  0.0616904529708574&quot;
+## [2] &quot;IV 95% confidence interval:  0.156237293022599&quot;</code></pre>
 <pre class="r"><code>print(paste(&quot;OLS 95% confidence interval: &quot;, ols_interval))</code></pre>
 <pre><code>## [1] &quot;OLS 95% confidence interval:  0.0627553532428805&quot;
 ## [2] &quot;OLS 95% confidence interval:  0.064086538550525&quot;</code></pre>
