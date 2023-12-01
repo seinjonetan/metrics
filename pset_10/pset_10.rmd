@@ -1,0 +1,60 @@
+---
+title: "Problem Set 10"
+output:
+  pdf_document: default
+  keep_tex: yes
+  html_document:
+    df_print: paged
+subtitle: Economemtrics 
+fontsize: 12pt
+linestretch: 1.5
+---
+
+**3**
+
+```{r}
+library(stats)
+library(AER)
+load("Angrist804049.Rda")
+
+Angrist804049$YOB <- factor(Angrist804049$YOB)
+Angrist804049$QOB <- factor(Angrist804049$QOB)
+
+dummies <- model.matrix(~ QOB - 1, data = Angrist804049)
+dummies <- as.data.frame(dummies)
+colnames(dummies) <- c("Q1", "Q2", "Q3", "Q4")
+Angrist804049 <- cbind(Angrist804049, dummies)
+
+dummies <- model.matrix(~ YOB - 1, data = Angrist804049)
+dummies <- as.data.frame(dummies)
+Angrist804049 <- cbind(Angrist804049, dummies)
+
+yob_dummies <- paste0("YOB", unique(Angrist804049$YOB))
+interactions <- c()
+for (yob in yob_dummies) {
+    for (q in c("Q1", "Q2", "Q3")) {
+        interactions <- c(interactions, paste0(yob, ":", q))
+    }
+}
+interactions <- paste(interactions, collapse = " + ")
+yob_dummies <- paste(yob_dummies, collapse = " + ")
+
+formula <- as.formula(paste(
+    "LWKLYWGE ~ EDUC + RACE + MARRIED + SMSA + NEWENG +
+    MIDATL + ENOCENT + WNOCENT + SOATL + ESOCENT + WSOCENT + MT + AGE + AGEQ +",
+    yob_dummies,
+    "| RACE + MARRIED + SMSA +
+      NEWENG + MIDATL + ENOCENT + WNOCENT + SOATL +
+      ESOCENT + WSOCENT + MT + AGE + AGEQ +",
+    interactions,
+    " + ",
+    yob_dummies
+))
+
+iv_4 <- ivreg(
+    formula,
+    data = Angrist804049
+)
+
+summary(iv_4, diagnostics = TRUE)
+```
