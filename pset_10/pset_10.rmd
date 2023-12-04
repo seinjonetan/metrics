@@ -58,3 +58,5 @@ iv_4 <- ivreg(
 
 summary(iv_4, diagnostics = TRUE)
 ```
+
+Out of 32 instruments, it looks like we have 27 weak instruments. This impllies that the interaction terms for the cohort dummies with QoB are likely not good instruments.
