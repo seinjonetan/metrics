@@ -1,0 +1,57 @@
+---
+title: "Problem Set 11"
+output:
+  pdf_document: default
+  keep_tex: yes
+  html_document:
+    df_print: paged
+subtitle: Economemtrics 
+fontsize: 12pt
+linestretch: 1.5
+---
+
+**1a.** 
+
+```{r}
+simulate <- function(n, beta = 0.5) {
+    x <- runif(n, 0, 1)
+    u <- rnorm(n, mean = 0, sd = 2)
+    y_star <- 1 + beta * x + u
+    y <- ifelse(y_star > 0, y_star, 0)
+    return(data.frame(x, y))
+}
+
+set.seed(42)
+
+simulated_data <- simulate(1000)
+fraction_censored <- sum(simulated_data$y == 0) / nrow(simulated_data)
+
+print(fraction_censored)
+```
+
+**1b.** 
+
+```{r}
+log_likelihood <- function(params, x, y) {
+    beta <- params[1]
+    sigma <- params[2]
+
+    y_star <- beta * x
+
+    uncensored <- y > 0
+    log_likelihood_uncensored <- sum(
+        dnorm(y[uncensored], mean = y_star[uncensored], sd = sigma, log = TRUE)
+    )
+    log_likelihood_censored <- sum(
+        pnorm(
+            y_star[!uncensored],
+            mean = 0, sd = sigma,
+            lower.tail = FALSE, log = TRUE
+        )
+    )
+
+    total_log_likelihood <- log_likelihood_uncensored + log_likelihood_censored
+
+    return(-total_log_likelihood)
+}
+```
