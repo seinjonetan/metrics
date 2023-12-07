@@ -1,0 +1,111 @@
+---
+title: "Problem Set 11"
+output:
+  pdf_document: default
+  keep_tex: yes
+  html_document:
+    df_print: paged
+subtitle: Economemtrics 
+fontsize: 12pt
+linestretch: 1.5
+---
+
+**1a.**
+
+```{r}
+library(AER)
+data("Affairs")
+
+Affairs$regular <- ifelse(Affairs$affairs == 12, 1, 0)
+Affairs$female <- ifelse(Affairs$gender == "female", 1, 0)
+Affairs$religious <- ifelse(Affairs$religiousness > 2, 1, 0)
+
+head(Affairs)
+
+model <- glm(
+    regular ~ education + yearsmarried + age + children + female + religious,
+    data = Affairs, family = binomial(link = "logit")
+)
+
+model_summary <- summary(model)
+print(model_summary)
+```
+
+**1b.**
+
+```{r}
+p_values <- model_summary$coefficients[
+    c("female", "religious", "childrenyes"), "Pr(>|z|)"
+]
+
+significant <- p_values < 0.05
+print(significant)
+```
+
+**1c.**
+
+```{r}
+library(margins)
+
+marginal_effects <- margins(model, variables = c("education", "yearsmarried"))
+summary(marginal_effects)
+```
+
+**2a.**
+
+```{r}
+simualte <- function(n) {
+    x <- rnorm(n)
+    u <- rnorm(n)
+    y <- ifelse(1 + x + u > 0, 1, 0)
+    return(data.frame(x, y))
+}
+
+ame_df <- data.frame(ols = numeric(), probit = numeric())
+
+for (i in 1:1000) {
+    data <- simualte(1000)
+    ols <- lm(y ~ x, data = data)
+    probit <- glm(y ~ x, data = data, family = binomial(link = "probit"))
+    ame_df[i, "ols"] <- summary(ols)$coefficients[2, "Estimate"]
+    ame_df[i, "probit"] <- summary(margins(probit))$AME
+}
+
+ols_average <- mean(ame_df$ols, na.rm = TRUE)
+probit_average <- mean(ame_df$probit, na.rm = TRUE)
+
+print(paste("Average OLS AME: ", ols_average))
+print(paste("Average Probit AME: ", probit_average))
+
+hist(ame_df$ols, main = "Histogram of OLS AMEs", xlab = "AME")
+hist(ame_df$probit, main = "Histogram of Probit AMEs", xlab = "AME")
+```
+
+**2b.**
+
+```{r}
+simualte <- function(n) {
+    x <- rchisq(n, df = 1)
+    u <- rnorm(n)
+    y <- ifelse(1 + x + u > 0, 1, 0)
+    return(data.frame(x, y))
+}
+
+ame_df <- data.frame(ols = numeric(), probit = numeric())
+
+options(warn = -1)
+
+for (i in 1:1000) {
+    data <- simualte(1000)
+    ols <- lm(y ~ x, data = data)
+    probit <- glm(y ~ x, data = data, family = binomial(link = "probit"))
+    ame_df[i, "ols"] <- summary(ols)$coefficients[2, "Estimate"]
+    ame_df[i, "probit"] <- summary(margins(probit))$AME
+}
+
+ols_average <- mean(ame_df$ols, na.rm = TRUE)
+probit_average <- mean(ame_df$probit, na.rm = TRUE)
+
+print(paste("Average OLS AME: ", ols_average))
+print(paste("Average Probit AME: ", probit_average))
+```
