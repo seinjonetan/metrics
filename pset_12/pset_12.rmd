@@ -32,11 +32,8 @@ print(fraction_censored)
 **1b.** 
 
 ```{r}
-log_likelihood <- function(params, x, y) {
-    beta <- params[1]
-    sigma <- params[2]
-
-    y_star <- beta * x
+log_likelihood <- function(beta, sigma = 2, x, y) {
+    y_star <- 1 + beta * x
 
     uncensored <- y > 0
     log_likelihood_uncensored <- sum(
@@ -52,6 +49,75 @@ log_likelihood <- function(params, x, y) {
 
     total_log_likelihood <- log_likelihood_uncensored + log_likelihood_censored
 
-    return(-total_log_likelihood)
+    return(total_log_likelihood)
 }
+```
+
+**1c.** 
+
+```{r}
+beta_grid <- seq(-3, 3, by = 0.01)
+
+x <- simulated_data$x
+y <- simulated_data$y
+
+log_likelihood_values <- sapply(
+    beta_grid, function(beta) log_likelihood(beta, x = x, y = y)
+)
+
+max_index <- which.max(log_likelihood_values)
+max_beta <- beta_grid[max_index]
+
+plot(
+    beta_grid, log_likelihood_values,
+    type = "l", xlab = "Beta", ylab = "Log-Likelihood"
+)
+points(
+    max_beta, log_likelihood_values[max_index],
+    col = "red", pch = 19
+)
+
+true_beta <- 0.5
+true_log_likelihood <- log_likelihood(true_beta, x = x, y = y)
+points(
+    true_beta, true_log_likelihood,
+    col = "blue", pch = 19
+)
+```
+
+**1d.** 
+
+```{r}
+optimize(log_likelihood, interval = c(-3, 3), maximum = TRUE, x = x, y = y)
+```
+
+**1e.** 
+
+```{r}
+set.seed(42)
+
+mle_estimates <- numeric(1000)
+ols_all_estimates <- numeric(1000)
+ols_non_censored_estimates <- numeric(1000)
+
+for (i in 1:1000) {
+    simulated_data <- simulate(1000)
+    x <- simulated_data$x
+    y <- simulated_data$y
+
+    mle_estimates[i] <- optimize(
+        log_likelihood,
+        interval = c(-3, 3), maximum = TRUE, x = x, y = y
+    )$maximum
+
+    ols_all_estimates[i] <- lm(y ~ x)$coefficients[2]
+
+    ols_non_censored_estimates[i] <- lm(y[y > 0] ~ x[y > 0])$coefficients[2]
+}
+
+mle_bias <- mean(mle_estimates) - true_beta
+ols_all_bias <- mean(ols_all_estimates) - true_beta
+ols_non_censored_bias <- mean(ols_non_censored_estimates) - true_beta
+
+print(c(mle_bias, ols_all_bias, ols_non_censored_bias))
 ```
