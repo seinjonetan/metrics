@@ -1,0 +1,86 @@
+---
+title: "2020 Final Practice 5pm"
+output:
+  pdf_document: default
+  keep_tex: yes
+  html_document:
+    df_print: paged
+subtitle: Economemtrics 
+fontsize: 12pt
+linestretch: 1.5
+---
+
+**5a.**
+```{r}
+library(AER)
+data("CigarettesSW")
+
+head(CigarettesSW)
+
+CigarettesSW$rprice <- CigarettesSW$price / CigarettesSW$cpi
+CigarettesSW$rtax <- CigarettesSW$tax / CigarettesSW$cpi
+CigarettesSW$rtaxs <- CigarettesSW$taxs / CigarettesSW$cpi
+CigarettesSW$rincome <- (
+    CigarettesSW$income / (CigarettesSW$cpi * CigarettesSW$pop)
+)
+```
+
+**5b.**
+```{r}
+CigarettesSW$eighty_five <- ifelse(
+    CigarettesSW$year == 1985, 1, 0
+)
+
+model <- lm(
+    log(packs) ~ 1 + log(rprice) + log(rincome) + eighty_five,
+    data = CigarettesSW
+)
+
+test_homo <- coeftest(model, vcov = vcovHC(model, type = "HC0"))
+print(test_homo)
+```
+
+**5c.**
+
+No
+
+**5d.**
+
+```{r}
+test_hetero <- coeftest(model, vcov = vcovHC(model, type = "HC1"))
+print(test_hetero)
+```
+
+**5e.**
+
+People with lower incomes may be correlated with wore socioeconomic circumstances which may increase frequencey of smoking.
+
+**5f.**
+
+```{r}
+model_2sls <- ivreg(
+    log(packs) ~ 1 + log(rprice) + log(rincome) + eighty_five |
+        log(income) + rtax + rtaxs + eighty_five,
+    data = CigarettesSW
+)
+
+summary(model_2sls, diagnostics = TRUE)
+```
+
+**5g.**
+
+No evidence that IVs are endogenous
+
+**5h.**
+
+Null hypothesis of exogeneity of errors is significant at 10%. Combination with simultaneity problem, we should use 2SLS.
+
+**5i.**
+
+Demand is less elastic with respect to price. Demand is less lastic with respect to income.
+
+**5j.**
+
+```{r}
+coeftest(model_2sls, vcov = vcovHC(model, type = "HC1"))
+```

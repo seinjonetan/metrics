@@ -1,0 +1,52 @@
+---
+title: "2022 Final Practice"
+output:
+  pdf_document: default
+  keep_tex: yes
+  html_document:
+    df_print: paged
+subtitle: Economemtrics 
+fontsize: 12pt
+linestretch: 1.5
+---
+
+**1a.** 
+```{r}
+library(AER)
+library(sandwich)
+data("SwissLabor")
+
+model <- lm(
+    income ~ 1 + age + I(age**2) + education + youngkids + oldkids,
+    data = SwissLabor
+)
+
+test <- coeftest(model, vcov = vcovHC(model, type = "HC3"))
+
+print(test)
+```
+
+**1b.** 
+```{r}
+education_ci <- confint(model, "education", vcov = vcovHC(model, type = "HC3"))
+print(education_ci)
+```
+
+**1c.** 
+```{r}
+print(
+    (-test[2] / (2 * test[3])) * 10
+)
+```
+
+**1d.** 
+```{r}
+HCVar <- vcovHC(model, type = "HC3")
+
+age_test <- linearHypothesis(
+    model, "age - 2 * I(age^2) = 5",
+    test = "Chisq", vcov = HCVar
+)
+
+print(age_test)
+```

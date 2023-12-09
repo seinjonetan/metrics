@@ -1,0 +1,64 @@
+---
+title: "2020 Final Practice 12pm"
+output:
+  pdf_document: default
+  keep_tex: yes
+  html_document:
+    df_print: paged
+subtitle: Economemtrics 
+fontsize: 12pt
+linestretch: 1.5
+---
+
+**5a.**
+
+```{r}
+library(AER)
+data("DoctorVisits")
+
+model <- lm(
+    visits ~ gender + age + income + illness + reduced
+        + private + freepoor + freerepat + nchronic + lchronic
+        + gender:lchronic + gender:nchronic,
+    data = DoctorVisits
+)
+
+print(coeftest(model, vcov = vcovHC(model, type = "HC1")))
+```
+
+**5b.**
+
+```{r}
+income_test <- linearHypothesis(
+    model,
+    c("income = 0"),
+    vcov = vcovHC(model, type = "HC1")
+)
+
+print(income_test)
+```
+
+**5c.**
+
+```{r}
+insurance_test <- linearHypothesis(
+    model,
+    c("privateyes = 0", "freepooryes = 0", "freerepatyes = 0"),
+    vcov = vcovHC(model, type = "HC1")
+)
+
+print(insurance_test)
+```
+
+**5d.**
+
+```{r}
+gender_chronic_test <- linearHypothesis(
+    model,
+    c("genderfemale:lchronicyes = 0"),
+    vcov = vcovHC(model, type = "HC1"),
+    test = "Chisq"
+)
+
+print(gender_chronic_test)
+```

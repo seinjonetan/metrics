@@ -1,0 +1,85 @@
+---
+title: "2021 Final Practice"
+output:
+  pdf_document: default
+  keep_tex: yes
+  html_document:
+    df_print: paged
+subtitle: Economemtrics 
+fontsize: 12pt
+linestretch: 1.5
+---
+
+**1a.**
+```{r}
+library(AER)
+
+data("Affairs")
+
+head(Affairs)
+```
+
+**1b.**
+```{r}
+Affairs$happy <- Affairs$rating == 5
+Affairs$religious <- Affairs$religious > 2
+
+head(Affairs)
+
+model <- lm(
+    affairs ~ happy + age + children + gender + religious + gender:religious,
+    data = Affairs
+)
+
+print(coeftest(model, vcov = vcovHC(model, type = "HC0")))
+```
+
+**1c.**
+```{r}
+print(confint(model, "happyTRUE", level = 0.9))
+```
+
+**1d.**
+
+Happy can be endogenous because it is correlated with the error term. For example, people who are unhappy may be more likely to have affairs, and people who are more likely to have affairs may be more likely to be happy. Years married can be used as an IV for happy when years married is correlated with happy but not correlated with the error term. 
+
+**1e.**
+```{r}
+model_2sls <- ivreg(
+    affairs ~ happy + age + gender + children + religious + (gender * religious) |
+        age + gender + children + religious + (gender * religious)
+            + yearsmarried
+            + yearsmarried * (age + gender + children + religious + (gender * religious)),
+    data = Affairs
+)
+
+print(coeftest(model_2sls, vcov = vcovHC(model_2sls, type = "HC0")))
+```
+
+**1f.**
+```{r}
+summary(model_2sls, diagnostics = TRUE)
+```
+
+**1g.**
+```{r}
+print(confint(model_2sls, "happyTRUE", level = 0.9))
+```
+
+**1h.**
+```{r}
+library(car)
+library(sandwich)
+
+HC3 <- vcovHC(model_2sls, type = "HC3")
+
+linearHypothesis(
+    model_2sls, c("religiousTRUE=0"),
+    vov = HC3, test = "Chisq"
+)
+
+linearHypothesis(
+    model_2sls, "gendermale:religiousTRUE=0",
+    vov = HC3, test = "Chisq"
+)
+```
