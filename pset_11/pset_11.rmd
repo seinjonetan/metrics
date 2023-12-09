@@ -51,6 +51,8 @@ marginal_effects <- margins(model, variables = c("education", "yearsmarried"))
 summary(marginal_effects)
 ```
 
+Both education and yearsmarried seem to have a significant effect on the probability of having a regular affair. More educaiton seems to have a negative effect while yearsmarried seems to have a positive effect.
+
 **2a.**
 
 ```{r}
@@ -81,6 +83,8 @@ hist(ame_df$ols, main = "Histogram of OLS AMEs", xlab = "AME")
 hist(ame_df$probit, main = "Histogram of Probit AMEs", xlab = "AME")
 ```
 
+LPM and AMEs look to be similar. In terms of their distributions, they both look similar as well.
+
 **2b.**
 
 ```{r}
@@ -109,3 +113,9 @@ probit_average <- mean(ame_df$probit, na.rm = TRUE)
 print(paste("Average OLS AME: ", ols_average))
 print(paste("Average Probit AME: ", probit_average))
 ```
+
+The estimated AMEs from probit and LPM are very different in this case.
+
+**2c.**
+
+The LPM looks to be able to reliably approximate the true AMEs when data is generated from the probit model. This is likely because the LPM is a linear approximation of the probit model.

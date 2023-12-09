@@ -121,3 +121,5 @@ ols_non_censored_bias <- mean(ols_non_censored_estimates) - true_beta
 
 print(c(mle_bias, ols_all_bias, ols_non_censored_bias))
 ```
+
+Clearly the MLE produces the least biased estimates. When comparing the two OLS estimates, the one that only uses all observations is less biased than the one that uses only the non-censored observations. This is because the non-censored observations are a subset of the full sample, and thus the OLS estimate using only the non-censored observations has a smaller sample size and is thus less precise.
