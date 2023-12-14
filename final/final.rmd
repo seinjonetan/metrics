@@ -16,7 +16,7 @@ linestretch: 1.5
 library(AER)
 
 # define function to simulate data
-simualte <- function(n, pi_1 = 0.5, pi_2 = 0.5, c = 1, beta_1 = 1, beta_2 = 2) {
+simualte <- function(n, pi_1 = 0.5, pi_2 = 1, c = 1, beta_1 = 1, beta_2 = 2) {
     # generate v, z, u as normal random variables
     v <- rnorm(n)
     z <- rnorm(n)
@@ -53,6 +53,13 @@ summary(iv_model)
 coefficients <- coef(iv_model)
 beta_1 <- coefficients["x"]
 cat("Beta 1 when pi_1 = 0.5: ", beta_1, "\n")
+
+# define true beta_1
+true_beta_1 <- 1
+
+# calculate difference
+difference <- true_beta_1 - beta_1
+cat("Difference between estimated and true Beta 1: ", difference, "\n")
 ```
 
 **4b.**
@@ -73,6 +80,11 @@ summary(iv_model)
 coefficients <- coef(iv_model)
 beta_1 <- coefficients["x"]
 cat("Beta 1 when pi_1 = 0: ", beta_1, "\n")
+
+difference <- true_beta_1 - beta_1
+
+# print difference
+cat("Difference between estimated and true Beta 1: ", difference, "\n")
 ```
 
 The performance of the model is significantly worse when pi_1 = 0. This is because z is not a suitable instrument for x when pi_1 = 0. This is because z is not correlated with x when pi_1 = 0.

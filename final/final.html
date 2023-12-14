@@ -1635,7 +1635,7 @@ pre code {
 <pre class="r"><code>library(AER)
 
 # define function to simulate data
-simualte &lt;- function(n, pi_1 = 0.5, pi_2 = 0.5, c = 1, beta_1 = 1, beta_2 = 2) {
+simualte &lt;- function(n, pi_1 = 0.5, pi_2 = 1, c = 1, beta_1 = 1, beta_2 = 2) {
     # generate v, z, u as normal random variables
     v &lt;- rnorm(n)
     z &lt;- rnorm(n)
@@ -1690,6 +1690,13 @@ coefficients &lt;- coef(iv_model)
 beta_1 &lt;- coefficients[&quot;x&quot;]
 cat(&quot;Beta 1 when pi_1 = 0.5: &quot;, beta_1, &quot;\n&quot;)</code></pre>
 <pre><code>## Beta 1 when pi_1 = 0.5:  1.043904</code></pre>
+<pre class="r"><code># define true beta_1
+true_beta_1 &lt;- 1
+
+# calculate difference
+difference &lt;- true_beta_1 - beta_1
+cat(&quot;Difference between estimated and true Beta 1: &quot;, difference, &quot;\n&quot;)</code></pre>
+<pre><code>## Difference between estimated and true Beta 1:  -0.04390418</code></pre>
 <p><strong>4b.</strong></p>
 <pre class="r"><code># set pi_1 to 0
 true_pi_1 &lt;- 0
@@ -1722,6 +1729,11 @@ coefficients &lt;- coef(iv_model)
 beta_1 &lt;- coefficients[&quot;x&quot;]
 cat(&quot;Beta 1 when pi_1 = 0: &quot;, beta_1, &quot;\n&quot;)</code></pre>
 <pre><code>## Beta 1 when pi_1 = 0:  0.7980948</code></pre>
+<pre class="r"><code>difference &lt;- true_beta_1 - beta_1
+
+# print difference
+cat(&quot;Difference between estimated and true Beta 1: &quot;, difference, &quot;\n&quot;)</code></pre>
+<pre><code>## Difference between estimated and true Beta 1:  0.2019052</code></pre>
 <p>The performance of the model is significantly worse when pi_1 = 0. This is because z is not a suitable instrument for x when pi_1 = 0. This is because z is not correlated with x when pi_1 = 0.</p>
 <p><strong>4c.</strong></p>
 <pre class="r"><code># predict y
