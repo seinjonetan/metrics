@@ -1,0 +1,114 @@
+---
+title: "2023 Final Econometrics"
+output:
+  pdf_document: default
+  keep_tex: yes
+  html_document:
+    df_print: paged
+subtitle: Sein Jone (67740001) 
+fontsize: 12pt
+linestretch: 1.5
+---
+
+**4a.**
+
+```{r}
+library(AER)
+
+# define function to simulate data
+simualte <- function(n, pi_1 = 0.5, pi_2 = 0.5, c = 1, beta_1 = 1, beta_2 = 2) {
+    # generate v, z, u as normal random variables
+    v <- rnorm(n)
+    z <- rnorm(n)
+    u <- rnorm(n)
+
+    # generate d as a bernoulli random variable
+    k <- runif(1, min = 0, max = 1)
+
+    # generate d
+    d <- ifelse(k >= c, 1, 0)
+
+    # generate x and y
+    x <- pi_1 * z + pi_2 * (z * d) + v
+    y <- beta_1 * x + beta_2 * (x * d) + u
+
+    return(data.frame(z, x, y, d))
+}
+
+# set seed
+set.seed(123)
+
+# set pi_1 to 0.5
+true_pi_1 <- 0.5
+
+# simulate data
+df <- simualte(1000, pi_1 = true_pi_1)
+
+# estimate model and print output
+formula <- as.formula("y ~ x + x:d | z + z:d")
+iv_model <- ivreg(formula, data = df)
+summary(iv_model)
+
+# extract coefficient
+coefficients <- coef(iv_model)
+beta_1 <- coefficients["x"]
+cat("Beta 1 when pi_1 = 0.5: ", beta_1, "\n")
+```
+
+**4b.**
+
+```{r}
+# set pi_1 to 0
+true_pi_1 <- 0
+
+# simulate data
+df <- simualte(1000, pi_1 = true_pi_1)
+
+# estimate model and print output
+formula <- as.formula("y ~ x + x:d | z + z:d")
+iv_model <- ivreg(formula, data = df)
+summary(iv_model)
+
+# extract coefficient
+coefficients <- coef(iv_model)
+beta_1 <- coefficients["x"]
+cat("Beta 1 when pi_1 = 0: ", beta_1, "\n")
+```
+
+The performance of the model is significantly worse when pi_1 = 0. This is because z is not a suitable instrument for x when pi_1 = 0. This is because z is not correlated with x when pi_1 = 0.
+
+**4c.**
+
+```{r}
+# predict y
+predictions <- predict(iv_model, newdata = df)
+
+# calculate residuals
+residuals <- df$y - predictions
+squared_residuals <- residuals^2
+mse <- mean(squared_residuals)
+
+# output mse
+cat("Mean Squared Error: ", mse, "\n")
+```
+
+**4d.**
+
+```{r}
+# simulate data
+true_pi_1 <- 0.5
+df <- simualte(1000, pi_1 = true_pi_1, beta_1 = 0)
+
+# predict y
+predictions <- predict(iv_model, newdata = df)
+residuals <- df$y - predictions
+squared_residuals <- residuals^2
+mse <- mean(squared_residuals)
+
+# output mse
+cat("Mean Squared Error: ", mse, "\n")
+```
+
+**4e.**
+
+pi_1 cannot be 0 because then z is not a suitable instrument for x. This is because z is not correlated with x when pi_1 = 0.
